@@ -1,12 +1,12 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from .permissions import isAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly
 from .models import Products
 from .serializers import ProductSerializer
 
 class ProductsView(APIView):
-    permission_classes = (isAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     def get(self, request, format=None):
         all_products = Products.objects.all()
         serializers = ProductSerializer(all_products, many=True)
@@ -18,3 +18,22 @@ class ProductsView(APIView):
             serializers.save()
             return Response(serializers.data, status=status.HTTP_201_CREATED)
         return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductDetailsView(APIView):
+    permission_classes = (IsAdminOrReadOnly,)
+    queryset = Products.objects.all()
+    serializer_class = ProductSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            product = self.queryset.get(pk=kwargs["pk"])
+            return Response(ProductSerializer(product).data)
+        except Products.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Product with ID: {} does not exist".format(kwargs["pk"])
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
