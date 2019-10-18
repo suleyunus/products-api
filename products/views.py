@@ -53,5 +53,22 @@ class ProductDetailsView(generics.RetrieveUpdateDestroyAPIView):
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
-    
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            product = self.queryset.get(pk=kwargs["pk"])
+            product.delete()
+            return Response(
+                data={
+                    "message": "Item deleted successfully"
+                },
+                status=status.HTTP_200_OK
+            )
+        except Products.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Product with ID: {} does not exist".format(kwargs["pk"])
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )    
     
